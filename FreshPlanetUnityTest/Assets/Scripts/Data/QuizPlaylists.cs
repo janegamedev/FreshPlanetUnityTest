@@ -6,13 +6,15 @@ using UnityEngine;
 
 namespace FreshPlanet.Data
 {
+    /// <summary>
+    /// Data class that stores all playlists loaded from the json data file
+    /// Loads playlists data upon creation and stores them both in the list and (id, playlist) dictionary
+    /// </summary>
     public class QuizPlaylists
     {
         private const string DATA_JSON_PATH = "Assets/Resources/coding-test-frontend-unity.json";
-        
-        private static List<Playlist> playlists = new List<Playlist>();
-        public static List<Playlist> Playlists => playlists;
 
+        public static List<Playlist> Playlists { get; private set; } = new List<Playlist>();
         private static Dictionary<string, Playlist> playlistsTable = new Dictionary<string, Playlist>();
 
         static QuizPlaylists()
@@ -30,10 +32,10 @@ namespace FreshPlanet.Data
         public static void LoadPlaylistData()
         {
             string jsonString = File.ReadAllText(DATA_JSON_PATH);
-            playlists = JsonConvert.DeserializeObject<List<Playlist>>(jsonString);
+            Playlists = JsonConvert.DeserializeObject<List<Playlist>>(jsonString);
 
             playlistsTable.Clear();
-            foreach (Playlist playlist in playlists)
+            foreach (Playlist playlist in Playlists)
             {
                 if (playlistsTable.ContainsKey(playlist.ID))
                 {
