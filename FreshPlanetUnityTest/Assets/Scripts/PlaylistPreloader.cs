@@ -7,15 +7,14 @@ using UnityEngine;
 namespace FreshPlanet
 {
     /// <summary>
-    /// Preloads the specific playlist by ID and stores it until another playlist is requested
+    /// Preloads the specific preloadedPlaylist by ID and stores it until another preloadedPlaylist is requested
     /// </summary>
-    public class PlaylistPreloader : MonoBehaviour
+    public class PlaylistPreloader : Singleton<PlaylistPreloader>
     {
         public static event Action<PlaylistPreloader, Playlist> OnPlaylistPreloadCompleted;
-        
-        private Playlist playlist;
-        public Playlist Playlist => playlist;
-        
+
+        public Playlist PreloadedPlaylist { get; private set; }
+
         private Coroutine preloadRoutine;
 
         private void OnDestroy()
@@ -33,14 +32,12 @@ namespace FreshPlanet
         }
         
         /// <summary>
-        /// Preloads playlist with the given id
+        /// Preloads the given preloadedPlaylist
         /// Starts the preloading routine that will invoke OnPlaylistPreloadCompleted on completion
         /// </summary>
-        /// <param name="id">Playlist ID to preload</param>
-        public void PreloadPlaylist(string id)
+        /// <param name="playlist">PreloadedPlaylist to preload</param>
+        public void PreloadPlaylist(Playlist playlist)
         {
-            playlist = QuizPlaylists.GetPlaylistById(id);
-
             if (playlist == null)
             {
                 return;
@@ -51,12 +48,14 @@ namespace FreshPlanet
         }
 
         /// <summary>
-        /// Playlist preload routine
-        /// Iterates questions in the given playlist and loads song picture and sample if required
+        /// PreloadedPlaylist preload routine
+        /// Iterates questions in the given preloadedPlaylist and loads song picture and sample if required
         /// Invokes OnPlaylistPreloadCompleted event upon completion
         /// </summary>
         private IEnumerator PlaylistPreloadRoutine(Playlist playlistPreload)
         {
+            PreloadedPlaylist = playlistPreload;
+            
             foreach (Playlist.Question question in playlistPreload.Questions)
             {
                 Playlist.Question.Song song = question.CurrentSong;
