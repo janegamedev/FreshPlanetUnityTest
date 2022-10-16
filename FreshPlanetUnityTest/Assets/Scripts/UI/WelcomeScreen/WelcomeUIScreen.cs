@@ -53,6 +53,7 @@ namespace FreshPlanet.UI.WelcomeScreen
         {
             base.Awake();
             PlaylistPreviewElement.OnPlaylistSelected += HandlePlaylistSelected;
+            PlaylistPreloader.OnPlaylistPreloadCompleted += HandlePlaylistPreloadCompleted;
             
             foreach (SectionGroup sectionGroup in sectionGroups)
             {
@@ -69,6 +70,7 @@ namespace FreshPlanet.UI.WelcomeScreen
         private void OnDestroy()
         {
             PlaylistPreviewElement.OnPlaylistSelected -= HandlePlaylistSelected;
+            PlaylistPreloader.OnPlaylistPreloadCompleted -= HandlePlaylistPreloadCompleted;
             
             foreach (SectionGroup sectionGroup in statusSectionTable.Values)
             {
@@ -115,7 +117,7 @@ namespace FreshPlanet.UI.WelcomeScreen
         {
             playlistStatusTable.Clear();
            
-            foreach (Playlist playlist in QuizPlaylists.Playlists)
+            foreach (Playlist playlist in PlaylistPreloader.Instance.Playlists)
             {
                 PlaylistStatus status = playlist.GetPlaylistStatus();
 
@@ -207,9 +209,14 @@ namespace FreshPlanet.UI.WelcomeScreen
         private void HandlePlaylistSelected(PlaylistPreviewElement previewElement, Playlist playlist)
         {
             PlaylistPreloader.Instance.PreloadPlaylist(playlist);
-            UIController.Instance.QuizScreen.Active = true;
         }
 
+        private void HandlePlaylistPreloadCompleted(PlaylistPreloader playlistPreloader, Playlist playlist)
+        {
+            Active = false;
+            UIController.Instance.QuizScreen.Active = true;
+        }
+        
         private void HandleStatusSectionClicked(PlaylistStatus status)
         {
             SelectSection(status);

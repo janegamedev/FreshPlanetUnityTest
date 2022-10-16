@@ -21,69 +21,8 @@ namespace FreshPlanet.Data
         
         private string id;
         public string ID => id;
-
-        public class Question
-        {
-            private string id;
-            public string ID => id;
-            
-            private int answerIndex;
-            public int AnswerIndex => answerIndex;
-
-            public class Choice
-            {
-                private string artist;
-                public string Artist => artist;
-                
-                private string title;
-                public string Title => title;
-            }
-            
-            private List<Choice> choices;
-            public List<Choice> Choices => choices;
-
-            public class Song
-            {
-                private string id;
-                public string ID => id;
-                
-                private string title;
-                public string Title => title;
-                
-                private string artist;
-                public string Artist => artist;
-                
-                private string picture;
-                public string PicturePath => picture;
-                
-                private string sample;
-                public string SamplePath => sample;
-                
-                private Texture songPicture;
-                public Texture SongPicture => songPicture;
-                
-                private AudioClip songSample;
-                public AudioClip SongSample => songSample;
-
-                public bool RequiresPicturePreload => songPicture == null;
-                public bool RequiresSamplePreload => songSample == null;
-
-                public void SetLoadedPicture(Texture preloadedTexture)
-                {
-                    songPicture = preloadedTexture;
-                }
-                
-                public void SetLoadedSample(AudioClip preloadedSample)
-                {
-                    songSample = preloadedSample;
-                }
-            }
-            
-            private Song song;
-            public Song CurrentSong => song;
-        }
         
-        private List<Question> questions;
+        private List<Question> questions = new List<Question>();
         public List<Question> Questions => questions;
         
         private string playlist;

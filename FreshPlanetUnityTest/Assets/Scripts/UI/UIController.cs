@@ -24,7 +24,7 @@ namespace FreshPlanet.UI
         protected override void Awake()
         {
             base.Awake();
-            RegisterUIScreens(welcomeScreen);
+            RegisterUIScreens(welcomeScreen, quizScreen);
         }
 
         private void Start()
