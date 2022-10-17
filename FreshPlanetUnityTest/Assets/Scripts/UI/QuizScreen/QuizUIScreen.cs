@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using FreshPlanet.Data;
 using TMPro;
 using UnityEngine;
@@ -9,15 +10,31 @@ namespace FreshPlanet.UI.QuizScreen
 {
     public class QuizUIScreen : UIScreen
     {
+        private readonly static int Idle = Animator.StringToHash("Idle");
+        
         [SerializeField]
         private TextMeshProUGUI playlistLabel;
+        
+        [Header("Cover")]
         [SerializeField]
         private RawImage playlistIcon;
+        [SerializeField]
+        private Animator coverAnimator;
+
+        [Header("Answers")]
+        [SerializeField]
+        private RectTransform questionProgressParent;
         [SerializeField]
         private List<QuestionProgressElement> questionProgressElements = new List<QuestionProgressElement>();
         [SerializeField]
         private List<AnswerButtonElement> answerButtonElements = new List<AnswerButtonElement>();
 
+        [Header("Colors")]
+        [SerializeField]
+        private Color correctColor;
+        [SerializeField]
+        private Color wrongColor;
+        
         [SerializeField]
         private AudioSource audioSource;
 
@@ -27,6 +44,8 @@ namespace FreshPlanet.UI.QuizScreen
         private Coroutine nextQuestionRoutine;
         private Coroutine timeRoutine;
         private QuestionProgressElement currentQuestionProgress;
+        private float answerTime;
+        private bool currentAnsweredCorrectly;
 
         protected override void Awake()
         {
@@ -62,7 +81,7 @@ namespace FreshPlanet.UI.QuizScreen
 
             foreach (QuestionProgressElement progressElement in questionProgressElements)
             {
-                progressElement.ResetProgress();
+                progressElement.ResetToIdle();
             }
 
             LoadNextQuestion();
@@ -84,25 +103,36 @@ namespace FreshPlanet.UI.QuizScreen
                 CompletePlaylist();
                 return;
             }
-
-            if (currentQuestionProgress != null)
-            {
-                currentQuestionProgress.TransitionOut();
-            }
-
+            
             TerminateRoutine();
             nextQuestionRoutine = StartCoroutine(NextQuestionRoutine());
         }
 
         private IEnumerator NextQuestionRoutine()
         {
+            yield return new WaitForSeconds(2f);
+            
+            if (currentQuestionProgress != null)
+            {
+                currentQuestionProgress.ScaleDown();
+            }
+
+            coverAnimator.SetBool(Idle, true);
+            
+            Sequence fadeSequence = DOTween.Sequence();
+            foreach (AnswerButtonElement buttonElement in answerButtonElements)
+            {
+                fadeSequence.Join(buttonElement.FadeColorAlpha(0));
+            }
+
+            yield return fadeSequence.WaitForCompletion();
+
             currentQuestion = playlist.Questions[currentQuestionIndex];
+            currentQuestion.SetResult(null);
             playlistIcon.texture = currentQuestion.CurrentSong.SongPicture;
 
             currentQuestionProgress = questionProgressElements[currentQuestionIndex];
             currentQuestionProgress.SetQuestionStarted();
-            
-            yield return new WaitForSeconds(2);
 
             for (int i = 0; i < answerButtonElements.Count; i++)
             {
@@ -110,8 +140,9 @@ namespace FreshPlanet.UI.QuizScreen
                 Choice choice = currentQuestion.Choices[i];
                 
                 answerButtonElement.DisplayAnswer(choice.Artist, choice.Title);
+                answerButtonElement.FadeColorAlpha(1);
             }
-
+            
             audioSource.clip = currentQuestion.CurrentSong.SongSample;
             audioSource.Play();
 
@@ -126,23 +157,25 @@ namespace FreshPlanet.UI.QuizScreen
 
         private IEnumerator TimerRoutine()
         {
-            float timer = 0;
+            float totalTime = audioSource.clip.length;
+            answerTime = 0;
 
             while (nextQuestionRoutine != null)
             {
-                timer += Time.deltaTime;
-                currentQuestionProgress.SetTime(timer);
+                answerTime += Time.deltaTime;
+                float percentageLeft = 1 - answerTime / totalTime;
+                currentQuestionProgress.SetProgressPct(percentageLeft);
                 yield return null;
             }
         }
-
-        private void CompletePlaylist()
-        {
-            
-        }
-
+        
         private void HandleAnswerClicked(AnswerButtonElement clickedAnswer)
         {
+            if (currentQuestion.Result != null)
+            {
+                return;
+            }
+            
             TerminateRoutine();
             int clickedIndex = answerButtonElements.IndexOf(clickedAnswer);
             bool clickedCorrect = clickedIndex == currentQuestion.AnswerIndex;
@@ -151,37 +184,43 @@ namespace FreshPlanet.UI.QuizScreen
 
         private void DisplayQuestionResults(int clickedIndex, bool clickedCorrect)
         {
+            Result result = new Result(clickedCorrect, answerTime);
+            currentQuestion.SetResult(result);
+
+            currentAnsweredCorrectly = clickedCorrect;
             audioSource.Stop();
-            if (clickedCorrect)
-            {
-                currentQuestionProgress.SetQuestionCompleted();
-            }
-            else
-            {
-                currentQuestionProgress.SetQuestionFailed();
-            }
+            coverAnimator.SetBool(Idle, false);
             
+            Color resultColor = currentAnsweredCorrectly ? correctColor : wrongColor;
+            currentQuestionProgress.SetQuestionCompleted(answerTime, resultColor);
+
             for (int i = 0; i < answerButtonElements.Count; i++)
             {
                 AnswerButtonElement answerButtonElement = answerButtonElements[i];
 
                 if (i == clickedIndex)
                 {
-                    answerButtonElement.FadeColor(clickedCorrect);
+                  
+                    answerButtonElement.FadeColor(resultColor);
                     continue;
                 }
                 
                 if (i == currentQuestion.AnswerIndex)
                 {
-                    answerButtonElement.FadeColor(true);
+                    answerButtonElement.FadeColor(correctColor);
                 }
                 else
                 {
                     answerButtonElement.SetInteractable(false);
                 }
             }
-            
+
             LoadNextQuestion();
+        }
+        
+        private void CompletePlaylist()
+        {
+            
         }
     }
 }

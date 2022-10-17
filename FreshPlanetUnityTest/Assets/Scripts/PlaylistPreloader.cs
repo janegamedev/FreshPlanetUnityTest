@@ -20,9 +20,10 @@ namespace FreshPlanet
 
         public static event Action<PlaylistPreloader, Playlist> OnPlaylistPreloadCompleted;
 
-        public List<Playlist> Playlists { get; private set; } = new List<Playlist>();
-        private readonly Dictionary<string, Playlist> playlistsTable = new Dictionary<string, Playlist>();
-        
+        [SerializeField]
+        private List<Playlist> playlists = new List<Playlist>();
+        public List<Playlist> Playlists => playlists;
+
         public Playlist PreloadedPlaylist { get; private set; }
 
         private Coroutine preloadRoutine;
@@ -54,19 +55,7 @@ namespace FreshPlanet
         private void LoadPlaylistData()
         {
             string jsonString = File.ReadAllText(DATA_JSON_PATH);
-            Playlists = JsonConvert.DeserializeObject<List<Playlist>>(jsonString);
-
-            playlistsTable.Clear();
-            foreach (Playlist playlist in Playlists)
-            {
-                if (playlistsTable.ContainsKey(playlist.ID))
-                {
-                    Debug.LogWarning($"Duplicated playlist key {playlist.ID} found in {playlist.PlaylistTitle} playlist");
-                    continue;
-                }
-                
-                playlistsTable.Add(playlist.ID, playlist);
-            }
+            playlists = JsonConvert.DeserializeObject<List<Playlist>>(jsonString);
         }
         
         /// <summary>

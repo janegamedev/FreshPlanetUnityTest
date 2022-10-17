@@ -22,14 +22,10 @@ namespace FreshPlanet.UI.QuizScreen
         [SerializeField]
         private Color defaultColor;
         [SerializeField]
-        private Color correctColor;
-        [SerializeField]
-        private Color wrongColor;
-        [SerializeField]
         private float colorFadeDuration = 0.25f;
 
         private Tween colorFade;
-        
+
         private void Awake()
         {
             answerButton.onClick.AddListener(HandleAnswerButtonClicked);
@@ -60,13 +56,21 @@ namespace FreshPlanet.UI.QuizScreen
             OnAnswerClicked?.Invoke(this);
         }
 
-        public void FadeColor(bool isCorrect)
+        public void FadeColor(Color fadeColor)
         {
             colorFade?.Kill();
-            Color fadeColor = isCorrect ? correctColor : wrongColor;
             colorFade = DOTween.Sequence()
-                .Append(songTitle.DOColor(fadeColor, colorFadeDuration).SetEase(Ease.Linear))
+                .Append(artistLabel.DOColor(fadeColor, colorFadeDuration).SetEase(Ease.Linear))
                 .Join(songTitle.DOColor(fadeColor, colorFadeDuration).SetEase(Ease.Linear));
+        }
+
+        public Tween FadeColorAlpha(float value)
+        {
+            colorFade?.Kill();
+            colorFade = DOTween.Sequence()
+                .Append(artistLabel.DOFade(value, colorFadeDuration).SetEase(Ease.Linear))
+                .Join(songTitle.DOFade(value, colorFadeDuration).SetEase(Ease.Linear));
+            return colorFade;
         }
     }
 }

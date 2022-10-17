@@ -6,7 +6,7 @@ namespace FreshPlanet.Data
     {
         private string id;
         public string ID => id;
-                
+        
         private int answerIndex;
         public int AnswerIndex => answerIndex;
         
@@ -18,13 +18,21 @@ namespace FreshPlanet.Data
 
         private string type;
 
-        public Question(string id, int index, List<Choice> choices, Song song, string type)
+        private Result result;
+        public Result Result => result;
+
+        public Question(string id, int answerIndex, List<Choice> choices, Song song, string type)
         {
             this.id = id;
-            answerIndex = index;
+            this.answerIndex = answerIndex;
             this.choices = choices;
             this.song = song;
             this.type = type;
+        }
+
+        public void SetResult(Result result)
+        {
+            this.result = result;
         }
     }
 }
