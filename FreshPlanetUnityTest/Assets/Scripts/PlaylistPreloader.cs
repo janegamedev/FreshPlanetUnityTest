@@ -1,21 +1,38 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using FreshPlanet.Data;
 using FreshPlanet.Utilities;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace FreshPlanet
 {
     /// <summary>
+    /// Stores all playlists loaded from the json data file
+    /// Loads playlists data upon creation and stores them both in the list and (id, playlist) dictionary
     /// Preloads the specific preloadedPlaylist by ID and stores it until another preloadedPlaylist is requested
     /// </summary>
     public class PlaylistPreloader : Singleton<PlaylistPreloader>
     {
+        private const string DATA_JSON_PATH = "Assets/Resources/coding-test-frontend-unity.json";
+
         public static event Action<PlaylistPreloader, Playlist> OnPlaylistPreloadCompleted;
+
+        [SerializeField]
+        private List<Playlist> playlists = new List<Playlist>();
+        public List<Playlist> Playlists => playlists;
 
         public Playlist PreloadedPlaylist { get; private set; }
 
         private Coroutine preloadRoutine;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            LoadPlaylistData();
+        }
 
         private void OnDestroy()
         {
@@ -29,6 +46,16 @@ namespace FreshPlanet
                 StopCoroutine(preloadRoutine);
                 preloadRoutine = null;
             }
+        }
+        
+        /// <summary>
+        /// Loads playlists data from json at the DATA_JSON_PATH path
+        /// Deserializes it using JsonConvert to list of playlists
+        /// </summary>
+        private void LoadPlaylistData()
+        {
+            string jsonString = File.ReadAllText(DATA_JSON_PATH);
+            playlists = JsonConvert.DeserializeObject<List<Playlist>>(jsonString);
         }
         
         /// <summary>
@@ -56,9 +83,9 @@ namespace FreshPlanet
         {
             PreloadedPlaylist = playlistPreload;
             
-            foreach (Playlist.Question question in playlistPreload.Questions)
+            foreach (Question question in playlistPreload.Questions)
             {
-                Playlist.Question.Song song = question.CurrentSong;
+                Song song = question.CurrentSong;
                 
                 if (song.RequiresPicturePreload)
                 {
