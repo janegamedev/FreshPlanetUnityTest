@@ -89,7 +89,7 @@ namespace FreshPlanet.UI.QuizScreen
         protected override IEnumerator TransitionOut()
         {
             TerminateRoutines();
-            return base.TransitionOut();
+            yield return base.TransitionOut();
         }
 
         private void LoadNextQuestion()
@@ -216,7 +216,8 @@ namespace FreshPlanet.UI.QuizScreen
         
         private void CompletePlaylist()
         {
-            
+            Active = false;
+            UIController.Instance.ResultScreen.Active = true;
         }
     }
 }
