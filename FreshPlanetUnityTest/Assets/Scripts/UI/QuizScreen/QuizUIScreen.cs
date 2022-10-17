@@ -23,8 +23,6 @@ namespace FreshPlanet.UI.QuizScreen
 
         [Header("Answers")]
         [SerializeField]
-        private RectTransform questionProgressParent;
-        [SerializeField]
         private List<QuestionProgressElement> questionProgressElements = new List<QuestionProgressElement>();
         [SerializeField]
         private List<AnswerButtonElement> answerButtonElements = new List<AnswerButtonElement>();
@@ -58,7 +56,7 @@ namespace FreshPlanet.UI.QuizScreen
             AnswerButtonElement.OnAnswerClicked -= HandleAnswerClicked;
         }
 
-        private void TerminateRoutine()
+        private void TerminateRoutines()
         {
             if (nextQuestionRoutine != null)
             {
@@ -90,7 +88,7 @@ namespace FreshPlanet.UI.QuizScreen
 
         protected override IEnumerator TransitionOut()
         {
-            TerminateRoutine();
+            TerminateRoutines();
             return base.TransitionOut();
         }
 
@@ -104,7 +102,7 @@ namespace FreshPlanet.UI.QuizScreen
                 return;
             }
             
-            TerminateRoutine();
+            TerminateRoutines();
             nextQuestionRoutine = StartCoroutine(NextQuestionRoutine());
         }
 
@@ -138,9 +136,7 @@ namespace FreshPlanet.UI.QuizScreen
             {
                 AnswerButtonElement answerButtonElement = answerButtonElements[i]; 
                 Choice choice = currentQuestion.Choices[i];
-                
                 answerButtonElement.DisplayAnswer(choice.Artist, choice.Title);
-                answerButtonElement.FadeColorAlpha(1);
             }
             
             audioSource.clip = currentQuestion.CurrentSong.SongSample;
@@ -149,24 +145,24 @@ namespace FreshPlanet.UI.QuizScreen
             yield return null;
 
             timeRoutine = StartCoroutine(TimerRoutine());
-            
-            yield return new WaitUntil(() => !audioSource.isPlaying);
-
-            DisplayQuestionResults(-1, false);
         }
 
         private IEnumerator TimerRoutine()
         {
             float totalTime = audioSource.clip.length;
             answerTime = 0;
+            float percentageLeft = 1;
 
-            while (nextQuestionRoutine != null)
+            while (percentageLeft > 0)
             {
                 answerTime += Time.deltaTime;
-                float percentageLeft = 1 - answerTime / totalTime;
+                percentageLeft = 1 - answerTime / totalTime;
                 currentQuestionProgress.SetProgressPct(percentageLeft);
                 yield return null;
             }
+            
+            // When time is out, count it as a wrong answer and display correct one
+            DisplayQuestionResults(-1, false);
         }
         
         private void HandleAnswerClicked(AnswerButtonElement clickedAnswer)
@@ -176,7 +172,7 @@ namespace FreshPlanet.UI.QuizScreen
                 return;
             }
             
-            TerminateRoutine();
+            TerminateRoutines();
             int clickedIndex = answerButtonElements.IndexOf(clickedAnswer);
             bool clickedCorrect = clickedIndex == currentQuestion.AnswerIndex;
             DisplayQuestionResults(clickedIndex, clickedCorrect);

@@ -44,6 +44,7 @@ namespace FreshPlanet.UI.QuizScreen
             artistLabel.color = defaultColor;
             songTitle.color = defaultColor;
             SetInteractable(true);
+            FadeColorAlpha(1);
         }
         
         public void SetInteractable(bool interactable)

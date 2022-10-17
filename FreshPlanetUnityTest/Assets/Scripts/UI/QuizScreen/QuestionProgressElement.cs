@@ -40,7 +40,7 @@ namespace FreshPlanet.UI.QuizScreen
 
         public void ResetToIdle()
         {
-            ScaleDown();
+            ScaleDown(true);
             animator.SetBool(IsStarted, false);
             animator.SetBool(IsCompleted, false);
             animator.SetTrigger(Reset);
