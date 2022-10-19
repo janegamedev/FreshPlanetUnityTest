@@ -6,6 +6,13 @@ using UnityEngine.UI;
 
 namespace FreshPlanet.UI.QuizScreen
 {
+    /// <summary>
+    /// Question progress element
+    /// Displays the status of the question (not started, in progress, completed)
+    /// Not started -> shows non animated icon of not started question
+    /// In progress -> shows animated spinning icon along with a timer circular fill bar based on the time left
+    /// Completed -> shows the question result (correct or wrong) and the time passed
+    /// </summary>
     [RequireComponent(typeof(Animator))]
     public class QuestionProgressElement : MonoBehaviour
     {

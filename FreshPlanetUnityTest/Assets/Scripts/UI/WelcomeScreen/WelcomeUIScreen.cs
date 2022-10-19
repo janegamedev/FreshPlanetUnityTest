@@ -3,12 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using FreshPlanet.Data;
+using FreshPlanet.Utilities;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace FreshPlanet.UI.WelcomeScreen
 {
+    /// <summary>
+    /// Initial screen of the game
+    /// Displays a list of playlists to choose from in 2 groups: active and mastered playlists
+    /// </summary>
     public class WelcomeUIScreen : UIScreen
     {
         [Header("Sections")]
@@ -77,7 +82,8 @@ namespace FreshPlanet.UI.WelcomeScreen
                 sectionGroup.sectionButton.onClick.RemoveListener(() => HandleStatusSectionClicked(sectionGroup.status));
             }
 
-            TerminateRoutine();
+            arrowTween?.Kill();
+            fadeTween?.Kill();
         }
 
         private void TerminateRoutine()
@@ -113,7 +119,10 @@ namespace FreshPlanet.UI.WelcomeScreen
             LayoutRebuilder.ForceRebuildLayoutImmediate(playlistsContentParent);
             return element;
         }
-
+        
+        /// <summary>
+        /// Loads playlist in their groups based on playlist status
+        /// </summary>
         private void LoadPlaylists()
         {
             playlistStatusTable.Clear();
@@ -132,7 +141,22 @@ namespace FreshPlanet.UI.WelcomeScreen
                 }
             }
         }
-
+        
+        /// <summary>
+        /// Handles status section button clicked
+        /// </summary>
+        /// <param name="status">Clicked playlist status</param>
+        private void HandleStatusSectionClicked(PlaylistStatus status)
+        {
+            SelectSection(status);
+        }
+        
+        /// <summary>
+        /// Selects section based on the given playlist status
+        /// If clicked section is already selected, will return
+        /// </summary>
+        /// <param name="status">Playlist status to select</param>
+        /// <param name="instant">If true, will transition to a new group instantly, otherwise will use sectionTransitionDuration</param>
         private void SelectSection(PlaylistStatus status, bool instant = false)
         {
             SectionGroup sectionGroup = statusSectionTable[status];
@@ -157,12 +181,17 @@ namespace FreshPlanet.UI.WelcomeScreen
             sectionChangeRoutine = StartCoroutine(SectionChangeRoutine(instant));
         }
 
+        /// <summary>
+        /// Section change routine
+        /// Moves section arrow using do tween, fades out current playlists, updates and fades in a new ones
+        /// </summary>
+        /// <param name="instant">If true, will transition to a new group instantly, otherwise will use sectionTransitionDuration</param>
         private IEnumerator SectionChangeRoutine(bool instant)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(topPanelRectTransform);
 
             arrowTween?.Kill();
-            arrowTween = sectionSelectArrow.DOMoveX(selectedSection.rectTransform.position.x, instant ? 0 : sectionTransitionDuration )
+            arrowTween = sectionSelectArrow.DOMoveX(selectedSection.rectTransform.position.x, instant ? 0 : sectionTransitionDuration)
                 .SetEase(Ease.Linear);
             fadeTween?.Kill();
             
@@ -183,6 +212,9 @@ namespace FreshPlanet.UI.WelcomeScreen
             playlistContentCanvasGroup.interactable = true;
         }
         
+        /// <summary>
+        /// Displays the playlists of the current selected section
+        /// </summary>
         private void DisplayPlaylists()
         {
             playlistStatusTable.TryGetValue(selectedSection.status, out List<Playlist> playlists);
@@ -207,20 +239,29 @@ namespace FreshPlanet.UI.WelcomeScreen
             }
         }
         
+        /// <summary>
+        /// Handles playlist element clicked
+        /// Invokes playlist preload on PlaylistPreloader.Instance
+        /// Makes playlistContentCanvasGroup non interactable to prevent further playlist selections
+        /// </summary>
+        /// <param name="previewElement">Playlist preview element that been clicked</param>
+        /// <param name="playlist">Playlist to preload</param>
         private void HandlePlaylistSelected(PlaylistPreviewElement previewElement, Playlist playlist)
         {
             PlaylistPreloader.Instance.PreloadPlaylist(playlist);
+            playlistContentCanvasGroup.interactable = false;
         }
 
+        /// <summary>
+        /// Handle playlist preload completed
+        /// Turns off welcome screen and makes the quiz screen active
+        /// </summary>
+        /// <param name="playlistPreloader">Playlist preloader</param>
+        /// <param name="playlist">Preloaded playlist</param>
         private void HandlePlaylistPreloadCompleted(PlaylistPreloader playlistPreloader, Playlist playlist)
         {
             Active = false;
             UIController.Instance.QuizScreen.Active = true;
-        }
-        
-        private void HandleStatusSectionClicked(PlaylistStatus status)
-        {
-            SelectSection(status);
         }
     }
 }

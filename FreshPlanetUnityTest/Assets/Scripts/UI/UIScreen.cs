@@ -20,10 +20,7 @@ namespace FreshPlanet.UI
         /// Called when the Active property of this screen changes value. Handled by the UI Controller.
         /// </summary>
         public event Action<UIScreen> OnActiveStatusChanged;
-        
-        [SerializeField]
-        protected RectTransform rectTransform;
-        
+
         [SerializeField]
         protected CanvasGroup canvasGroup;
         
@@ -63,12 +60,12 @@ namespace FreshPlanet.UI
             canvasGroup.blocksRaycasts = false;
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
-            StopTransitions();
+            fadeRoutine?.Kill();
         }
 
-        protected void StopTransitions()
+        private void StopTransitions()
         {
             if (transitionInCoroutine != null)
             {
@@ -157,7 +154,7 @@ namespace FreshPlanet.UI
             canvasGroup.blocksRaycasts = false;
         }
 
-        protected Tween FadeScreen(float value, Action callback = null)
+        private Tween FadeScreen(float value, Action callback = null)
         {
             fadeRoutine?.Kill();
             fadeRoutine = canvasGroup.DOFade(value, transitionDuration).SetEase(Ease.Linear);

@@ -1,4 +1,3 @@
-using System;
 using DG.Tweening;
 using FreshPlanet.Data;
 using TMPro;
@@ -7,6 +6,10 @@ using UnityEngine.UI;
 
 namespace FreshPlanet.UI.ResultScreen
 {
+    /// <summary>
+    /// Question result element that displayed in Result screen
+    /// Shows question's result including answer time and correctness, song cover, title and the artist
+    /// </summary>
     public class QuestionResultElement : MonoBehaviour
     {
         private const string QUESTION_TIME = "{0}s";
