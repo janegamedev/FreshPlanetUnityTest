@@ -6,6 +6,12 @@ using UnityEngine.UI;
 
 namespace FreshPlanet.UI.QuizScreen
 {
+    /// <summary>
+    /// Answer button element
+    /// Represent a button with an answer to the current question
+    /// Can change the text color and fade in/out this text
+    /// Upon click invokes OnAnswerClicked event
+    /// </summary>
     [RequireComponent(typeof(Button))]
     public class AnswerButtonElement : MonoBehaviour
     {

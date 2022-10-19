@@ -3,11 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using FreshPlanet.Data;
-using FreshPlanet.Utilities;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace FreshPlanet
+namespace FreshPlanet.Utilities
 {
     /// <summary>
     /// Stores all playlists loaded from the json data file
@@ -16,7 +15,7 @@ namespace FreshPlanet
     /// </summary>
     public class PlaylistPreloader : Singleton<PlaylistPreloader>
     {
-        private const string DATA_JSON_PATH = "Assets/Resources/coding-test-frontend-unity.json";
+        private const string DATA_JSON_PATH = "/coding-test-frontend-unity.json";
 
         public static event Action<PlaylistPreloader, Playlist> OnPlaylistPreloadCompleted;
 
@@ -34,11 +33,6 @@ namespace FreshPlanet
             LoadPlaylistData();
         }
 
-        private void OnDestroy()
-        {
-            TerminateRoutine();
-        }
-
         private void TerminateRoutine()
         {
             if (preloadRoutine != null)
@@ -54,7 +48,7 @@ namespace FreshPlanet
         /// </summary>
         private void LoadPlaylistData()
         {
-            string jsonString = File.ReadAllText(DATA_JSON_PATH);
+            string jsonString = File.ReadAllText($"{Application.streamingAssetsPath}{DATA_JSON_PATH}");
             playlists = JsonConvert.DeserializeObject<List<Playlist>>(jsonString);
         }
         

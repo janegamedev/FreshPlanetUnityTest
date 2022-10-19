@@ -2,12 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using FreshPlanet.Data;
+using FreshPlanet.Utilities;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace FreshPlanet.UI.QuizScreen
 {
+    /// <summary>
+    /// Quiz screen
+    /// Displays series of questions with 4 possible choice buttons
+    /// Contains additional logic for timers and playlist progress along the way
+    /// </summary>
     public class QuizUIScreen : UIScreen
     {
         private readonly static int Idle = Animator.StringToHash("Idle");
@@ -40,6 +46,7 @@ namespace FreshPlanet.UI.QuizScreen
         private int currentQuestionIndex;
         private Question currentQuestion;
         private Coroutine nextQuestionRoutine;
+        private Coroutine resultRoutine;
         private Coroutine timeRoutine;
         private QuestionProgressElement currentQuestionProgress;
         private float answerTime;
@@ -69,6 +76,12 @@ namespace FreshPlanet.UI.QuizScreen
                 StopCoroutine(timeRoutine);
                 timeRoutine = null;
             }
+
+            if (resultRoutine != null)
+            {
+                StopCoroutine(resultRoutine);
+                resultRoutine = null;
+            }
         }
 
         protected override IEnumerator TransitionIn()
@@ -91,7 +104,11 @@ namespace FreshPlanet.UI.QuizScreen
             TerminateRoutines();
             yield return base.TransitionOut();
         }
-
+        
+        /// <summary>
+        /// Loads a next question if such exists
+        /// Otherwise, completes a playlist
+        /// </summary>
         private void LoadNextQuestion()
         {
             currentQuestionIndex++;
@@ -108,15 +125,19 @@ namespace FreshPlanet.UI.QuizScreen
 
         private IEnumerator NextQuestionRoutine()
         {
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(1f);
             
+            // Scale down previous question progress to the regular size
             if (currentQuestionProgress != null)
             {
                 currentQuestionProgress.ScaleDown();
             }
 
+            // Broadcast cover animator to idle
+            // Hides the song cover and displays unknown song picture
             coverAnimator.SetBool(Idle, true);
             
+            // Fade out button element's previous answers
             Sequence fadeSequence = DOTween.Sequence();
             foreach (AnswerButtonElement buttonElement in answerButtonElements)
             {
@@ -125,13 +146,18 @@ namespace FreshPlanet.UI.QuizScreen
 
             yield return fadeSequence.WaitForCompletion();
 
+            // Assigns a new question
             currentQuestion = playlist.Questions[currentQuestionIndex];
             currentQuestion.SetResult(null);
+            // Loads current song's cover
             playlistIcon.texture = currentQuestion.CurrentSong.SongPicture;
 
+            // Gets new question progress element and broadcast question start
             currentQuestionProgress = questionProgressElements[currentQuestionIndex];
             currentQuestionProgress.SetQuestionStarted();
 
+            // Displays answers on each answer button element
+            // DisplayAnswer will automatically fade in button element text
             for (int i = 0; i < answerButtonElements.Count; i++)
             {
                 AnswerButtonElement answerButtonElement = answerButtonElements[i]; 
@@ -139,11 +165,13 @@ namespace FreshPlanet.UI.QuizScreen
                 answerButtonElement.DisplayAnswer(choice.Artist, choice.Title);
             }
             
+            // Sets current song's sample and plays it
             audioSource.clip = currentQuestion.CurrentSong.SongSample;
             audioSource.Play();
 
             yield return null;
 
+            // Starts the timer routine
             timeRoutine = StartCoroutine(TimerRoutine());
         }
 
@@ -165,6 +193,12 @@ namespace FreshPlanet.UI.QuizScreen
             DisplayQuestionResults(-1, false);
         }
         
+        /// <summary>
+        /// Handles answer button element clicked
+        /// Checks what index was clicked and if that was a correct answer
+        /// Invokes DisplayQuestionResults
+        /// </summary>
+        /// <param name="clickedAnswer">Answer button element that was clicked</param>
         private void HandleAnswerClicked(AnswerButtonElement clickedAnswer)
         {
             if (currentQuestion.Result != null)
@@ -178,7 +212,25 @@ namespace FreshPlanet.UI.QuizScreen
             DisplayQuestionResults(clickedIndex, clickedCorrect);
         }
 
+        /// <summary>
+        /// Displays question results by starting QuestionResultsRoutine
+        /// </summary>
+        /// <param name="clickedIndex">Clicked answer index</param>
+        /// <param name="clickedCorrect">Did player click the correct answer?</param>
         private void DisplayQuestionResults(int clickedIndex, bool clickedCorrect)
+        {
+            TerminateRoutines();
+            resultRoutine = StartCoroutine(QuestionResultsRoutine(clickedIndex, clickedCorrect));
+        }
+
+        /// <summary>
+        /// Displays question results
+        /// Shows song cover and the correct answer, updates question progress
+        /// Waits for a few seconds before loading a next question
+        /// </summary>
+        /// <param name="clickedIndex">Clicked answer index</param>
+        /// <param name="clickedCorrect">Did player click the correct answer?</param>
+        private IEnumerator QuestionResultsRoutine(int clickedIndex, bool clickedCorrect)
         {
             Result result = new Result(clickedCorrect, answerTime);
             currentQuestion.SetResult(result);
@@ -210,10 +262,16 @@ namespace FreshPlanet.UI.QuizScreen
                     answerButtonElement.SetInteractable(false);
                 }
             }
-
+            
+            yield return new WaitForSeconds(1f);
+            
             LoadNextQuestion();
         }
         
+        /// <summary>
+        /// Complete playlist quiz by redirecting the player to the result screen
+        /// Disables Quiz screen and actives Result screen
+        /// </summary>
         private void CompletePlaylist()
         {
             Active = false;

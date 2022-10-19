@@ -7,6 +7,11 @@ using UnityEngine.UI;
 
 namespace FreshPlanet.UI.WelcomeScreen
 {
+    /// <summary>
+    /// Playlist preview element that displayed in Welcome screen
+    /// Shows playlist's label and best progress (or if it's been mastered)
+    /// Upon click invokes event OnPlaylistSelected
+    /// </summary>
     [RequireComponent(typeof(Button))]
     public class PlaylistPreviewElement : MonoBehaviour
     {

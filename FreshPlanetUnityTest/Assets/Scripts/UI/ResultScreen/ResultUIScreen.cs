@@ -1,13 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using FreshPlanet.Data;
+using FreshPlanet.Utilities;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace FreshPlanet.UI.ResultScreen
 {
+    /// <summary>
+    /// Quiz result screen
+    /// Displays the user score and for each question if the user guessed right or wrong.
+    /// Contains "Next" button that redirects to the welcome screen, where the user can pick another playlist (or the same one if he wants) and play again.
+    /// </summary>
     public class ResultUIScreen : UIScreen
     {
         private const string PLAYER_WON_TITLE = "You won!";
@@ -53,23 +60,20 @@ namespace FreshPlanet.UI.ResultScreen
             }
         }
 
+        /// <summary>
+        /// Collects playlist results and updates max scores in the saving system
+        /// </summary>
         private void CollectQuizResults()
         {
-            int completedQuestions = 0;
-            
-            foreach (Question question in completedPlaylist.Questions)
-            {
-                Result result = question.Result;
-                if (result.AnsweredCorrectly)
-                {
-                    completedQuestions++;
-                }
-            }
-            
+            int completedQuestions = completedPlaylist.Questions.Count(question => question.Result.AnsweredCorrectly);
             completedPlaylist.SetCompletedQuestionsAmount(completedQuestions);
             completedPerfectly = completedQuestions == completedPlaylist.Questions.Count;
         }
         
+        /// <summary>
+        /// Displays playlists result
+        /// Shows result title based on player's performance and displays questions results
+        /// </summary>
         private void DisplayResults()
         {
             resultTitle.text = completedPerfectly ? PLAYER_WON_TITLE : PLAYER_FAILED_TITLE;
@@ -82,6 +86,10 @@ namespace FreshPlanet.UI.ResultScreen
             }
         }
         
+        /// <summary>
+        /// Handle next button clicked
+        /// Turns off the result screen and redirects to the welcome screen
+        /// </summary>
         private void HandleNextButtonClicked()
         {
             Active = false;
