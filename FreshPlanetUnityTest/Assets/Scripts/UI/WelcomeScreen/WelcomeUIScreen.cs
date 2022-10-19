@@ -103,6 +103,7 @@ namespace FreshPlanet.UI.WelcomeScreen
         {
             yield return base.TransitionOut();
             TerminateRoutine();
+            selectedSection = null;
         }
 
         private PlaylistPreviewElement SpawnPlaylistPreviewElement()

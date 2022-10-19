@@ -12,9 +12,13 @@ namespace FreshPlanet.UI
     {
         [SerializeField]
         private UIScreen welcomeScreen;
+        public UIScreen WelcomeScreen => welcomeScreen;
         [SerializeField]
         private UIScreen quizScreen;
         public UIScreen QuizScreen => quizScreen;
+        [SerializeField]
+        private UIScreen resultScreen;
+        public UIScreen ResultScreen => resultScreen;
 
         private UIScreen currentScreen;
 
@@ -24,7 +28,9 @@ namespace FreshPlanet.UI
         protected override void Awake()
         {
             base.Awake();
-            RegisterUIScreens(welcomeScreen, quizScreen);
+            RegisterUIScreens(welcomeScreen, 
+                quizScreen, 
+                resultScreen);
         }
 
         private void Start()

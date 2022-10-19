@@ -42,7 +42,8 @@ namespace FreshPlanet.Data
 
         public void SetCompletedQuestionsAmount(int completed)
         {
-            PlayerPrefs.SetInt(string.Format(PLAYERPREFS_PLAYLIST_COMPLETED_QUESTIONS_KEY, id), Mathf.Min(completed, Questions.Count));
+            int maxScore = Mathf.Max(GetMaxCompletedQuestions(), completed);
+            PlayerPrefs.SetInt(string.Format(PLAYERPREFS_PLAYLIST_COMPLETED_QUESTIONS_KEY, id), Mathf.Min(maxScore, Questions.Count));
         }
 
         public PlaylistStatus GetPlaylistStatus()
